@@ -28,7 +28,7 @@ I have written the installation steps for OS X & Linux:
 ```sh
 npm install -g serverless
 install the AWS Command Line Interface
-git clone git://github.com/yourname/github-link
+git clone git://github.com/onnobos/expensy_bot.git
 cd github-link
 npm install
 serverless deploy
@@ -76,4 +76,4 @@ Onno Bos – twitter [@obeone](https://twitter.com/obeone)
 
 Distributed under the GNU GPLv3 license. See ``GNU GPLv3`` for more information.
 
-[https://github.com/yourname/github-link](https://github.com/dbader/)
+[https://github.com/onnobos/expensy_bot.git](https://github.com/onnobos/expensy_bot.git)

@@ -93,6 +93,7 @@ Create a new intent `recordReceipt` in the Lex bot.
 
 ##### 5A. Configure Slots for intent `recordReceipt`
 Configure the following custom slots:
+
 | currencyType | Slot Resolution | Value |
 | -------------| --------------- | ----- |
 | receiptType | Restrict to Slot values and Synonyms | chf (Swiss Franc, CHF), eur (euro, EUR, EURO), usd (US Dollar, Dollar, USD) |
@@ -100,6 +101,7 @@ Configure the following custom slots:
 | receiptType | Restrict to Slot values and Synonyms | petrolstation (gas station, gasoline station), restaurant (bar, cafeteria, coffee shop, diner) |
 
 And Configure the following slots:
+
 | Required | Name           | Slot type   | Prompt |
 | ---------| -------------- | ---------   | ------ |
 | yes | receiptType | receiptType | What type of receipt? Is restaurant or petrol station |
