@@ -1,0 +1,5 @@
+{
+	"restaurants" : ["kukku", "movenpick", "san diego", "autogrill"],
+	"petrolstations" : ["esso", "shell", "socar", "bp", "statoil", "coop"],
+	"currency": ["chf", "eur", "euro", "usd"]
+}

@@ -1,0 +1,204 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: expensybot
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+custom:
+  configbucketname: configbucket
+  configsavebucketname: savebucket
+  snstextreg: textreg
+  snslexbot: lexbot
+  snsdbase: dbasebot
+  snsreport: reportbot
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  stage: dev
+  region: eu-west-1
+  timeout: 10
+  environment:
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    DYNAMODB_INDEX: receiptdateyear-receiptdatemonth-index
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+       - "logs:CreateLogGroup"
+       - "logs:CreateLogStream"
+       - "logs:PutLogEvents"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+       - "lex:PostText"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+       - "rekognition:DetectText"
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+      Resource:
+       - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}/index/${self:provider.environment.DYNAMODB_INDEX}"
+       - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+    - Effect: Allow
+      Action:
+        - "SNS:Publish"
+      Resource:
+        - { "Fn::Join" : ["", ["arn:aws:sns:${self:provider.region}:", { "Ref" : "AWS::AccountId" }, ":${self:service}-${self:provider.stage}-${self:custom.snstextreg}" ] ]  }
+        - { "Fn::Join" : ["", ["arn:aws:sns:${self:provider.region}:", { "Ref" : "AWS::AccountId" }, ":${self:service}-${self:provider.stage}-${self:custom.snslexbot}" ] ]  }
+        - { "Fn::Join" : ["", ["arn:aws:sns:${self:provider.region}:", { "Ref" : "AWS::AccountId" }, ":${self:service}-${self:provider.stage}-${self:custom.snsdbase}" ] ]  }
+        - { "Fn::Join" : ["", ["arn:aws:sns:${self:provider.region}:", { "Ref" : "AWS::AccountId" }, ":${self:service}-${self:provider.stage}-${self:custom.snsreport}" ] ]  }
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+      Resource:
+        - "arn:aws:s3:::${self:service}-${self:provider.stage}-${self:custom.configbucketname}/*"
+        - "arn:aws:s3:::${self:service}-${self:provider.stage}-${self:custom.configsavebucketname}/*"
+
+functions:
+  expensybot: # Main handler and communication with the Telegram Bot
+    handler: handler.expensy_bot
+    memorySize: 128
+    environment:
+     BOT_NAME: expensy_bot
+     BOT_ALIAS: Beta
+     API_GATEWAY_URL: https://api.telegram.org/bot${file(./serverless.env.yml):dev.TELEGRAM_API}/
+     TELEGRAM_API: ${file(./serverless.env.yml):dev.TELEGRAM_API}
+     MY_AWS_REGION: ${self:provider.region}
+     CONFIG_BUCKET: ${self:service}-${self:provider.stage}-${self:custom.configbucketname}
+     CONFIG_FILE: config.json
+     SNS_TOPIC_TEXTREG: { "Fn::Join" : ["", ["arn:aws:sns:${self:provider.region}:", { "Ref" : "AWS::AccountId" }, ":${self:service}-${self:provider.stage}-${self:custom.snstextreg}" ] ]  }
+     SNS_TOPIC_LEXREG: { "Fn::Join" : ["", ["arn:aws:sns:${self:provider.region}:", { "Ref" : "AWS::AccountId" }, ":${self:service}-${self:provider.stage}-${self:custom.snslexbot}" ] ]  }
+    events:
+     - http:
+        path: telegram/sendmessage
+        method: post
+        integration: lambda
+        request:
+          template:
+            application/json: '{"body": $input.json("$")}'
+  expensybot-init: # Lambada function for Input validation of the lex bot from AMAZON Lex Service
+    handler: handler-init.expensy_init
+    memorySize: 128
+    environment:
+     BOT_NAME: expensy_bot
+  expensybot-dbase: # Lambada function for communcation with the AMAZON Dynmodb Service
+    handler: handler-dbase.expensy_bot_dbase
+    environment:
+     MY_AWS_REGION: ${self:provider.region}
+     DYNAMODB_TABLE: ${self:provider.environment.DYNAMODB_TABLE}
+    events:
+     - sns: ${self:service}-${self:provider.stage}-${self:custom.snsdbase}
+  expensybot-report: # Lambada function to generate PDF report
+    timeout: 60
+    handler: handler-report.expensy_bot_report
+    environment:
+     MY_AWS_REGION: ${self:provider.region}
+     CONFIG_BUCKET: ${self:service}-${self:provider.stage}-${self:custom.configbucketname}
+     API_GATEWAY_URL: https://api.telegram.org/bot${file(./serverless.env.yml):dev.TELEGRAM_API}/
+     DYNAMODB_TABLE: ${self:provider.environment.DYNAMODB_TABLE}
+     DYNAMODB_INDEX: ${self:provider.environment.DYNAMODB_INDEX}
+     HTML_TEMPLATE_FILE: template.html
+    events:
+     - sns: ${self:service}-${self:provider.stage}-${self:custom.snsreport}
+  expensybot-textreg: # Lambada function for text extraction using AMAZON Rekognition Service
+    handler: handler-textreg.expensy_bot_textreg
+    environment:
+     BOT_NAME: expensy_bot
+     BOT_ALIAS: Beta
+     API_GATEWAY_URL: https://api.telegram.org/bot${file(./serverless.env.yml):dev.TELEGRAM_API}/
+     API_FILE_GATEWAY_URL: https://api.telegram.org/file/bot${file(./serverless.env.yml):dev.TELEGRAM_API}/
+     TELEGRAM_API: ${file(./serverless.env.yml):dev.TELEGRAM_API}
+     MY_AWS_REGION: ${self:provider.region}
+     CONFIG_BUCKET: ${self:service}-${self:provider.stage}-${self:custom.configbucketname}
+     SAVE_BUCKET: ${self:service}-${self:provider.stage}-${self:custom.configsavebucketname}
+     CONFIG_FILE: config.json
+     SNS_TOPIC_LEXREG: { "Fn::Join" : ["", ["arn:aws:sns:${self:provider.region}:", { "Ref" : "AWS::AccountId" }, ":${self:service}-${self:provider.stage}-${self:custom.snslexbot}" ] ]  }
+    events:
+     - sns: ${self:service}-${self:provider.stage}-${self:custom.snstextreg}
+  expensybot-snslexbot: # Lambada function for communication to the AMAZON Lex Service
+    handler: handler-snslexbot.expensy_bot_snslexbot
+    environment:
+     BOT_NAME: expensy_bot
+     BOT_ALIAS: Beta
+     API_GATEWAY_URL: https://api.telegram.org/bot${file(./serverless.env.yml):dev.TELEGRAM_API}/
+     API_FILE_GATEWAY_URL: https://api.telegram.org/file/bot${file(./serverless.env.yml):dev.TELEGRAM_API}/
+     TELEGRAM_API: ${file(./serverless.env.yml):dev.TELEGRAM_API}
+     MY_AWS_REGION: ${self:provider.region}
+     SNS_TOPIC_DBASE: { "Fn::Join" : ["", ["arn:aws:sns:${self:provider.region}:", { "Ref" : "AWS::AccountId" }, ":${self:service}-${self:provider.stage}-${self:custom.snsdbase}" ] ]  }
+     SNS_TOPIC_REPORT: { "Fn::Join" : ["", ["arn:aws:sns:${self:provider.region}:", { "Ref" : "AWS::AccountId" }, ":${self:service}-${self:provider.stage}-${self:custom.snsreport}" ] ]  }
+    events:
+     - sns: ${self:service}-${self:provider.stage}-${self:custom.snslexbot}
+  expensybot-savefile: # Lambada function to store a file into the AMAZON S3 Service
+    handler: handler-savefile.expensy_bot_savefile
+    memorySize: 128
+    environment:
+     BOT_NAME: expensy_bot
+     BOT_ALIAS: Beta
+     API_GATEWAY_URL: https://api.telegram.org/bot${file(./serverless.env.yml):dev.TELEGRAM_API}/
+     API_FILE_GATEWAY_URL: https://api.telegram.org/file/bot${file(./serverless.env.yml):dev.TELEGRAM_API}/
+     TELEGRAM_API: ${file(./serverless.env.yml):dev.TELEGRAM_API}
+     MY_AWS_REGION: ${self:provider.region}
+     SAVE_BUCKET: ${self:service}-${self:provider.stage}-${self:custom.configsavebucketname}
+    events:
+     - sns: ${self:service}-${self:provider.stage}-${self:custom.snstextreg}
+
+resources:
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: receiptdatemonth
+            AttributeType: S
+          - AttributeName: receiptdateyear
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.DYNAMODB_INDEX}
+            KeySchema:
+            - AttributeName: receiptdateyear
+              KeyType: HASH
+            - AttributeName: receiptdatemonth
+              KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: '1'
+              WriteCapacityUnits: '1'
+    configbucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-${self:provider.stage}-${self:custom.configbucketname}
+    configsavebucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-${self:provider.stage}-${self:custom.configsavebucketname}

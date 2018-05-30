@@ -1,0 +1,70 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+    </head>
+    <body style="width:auto;font-family: 'Trebuchet MS';width:970px">
+        <h1 style="font-size:24pt;color:#8394c9;padding-left:20px">Expense Report</h1>
+        <p style="padding-left:20px;font-size:10pt">Name:{{name}}</p>
+        <div style="width:970px;font-size:10pt">
+          <table style="width: auto; margin-right: 0px;margin-left: auto;height: 19px;font-size:10pt">
+            <tr style="background-color: rgb(59, 78, 135)">
+              <td colspan="2" style="text-align: center;color:#FFF">Pay Period</td>
+            </tr>
+              <td style="padding: 0px 3px 0px 3px;text-align: right;background-color:rgb(228, 232, 243)">From:</td>
+              <td style="width:126px;text-align: center">{{from_date}}</td>
+            <tr>
+              <td style="padding: 0px 3px 0px 3px;text-align: right;background-color:rgb(228, 232, 243)">To:</td>
+              <td style="text-align: center">{{to_date}}</td>
+            </tr>
+          </table>
+        </BR>
+          <table style="width: 970px;font-size:10pt;margin: 0px" cellspacing="0" cellpadding="0">
+            <tr style="background-color: rgb(59, 78, 135);color:#FFF;height:19px;vertical-align: bottom;border:1px SOLID #000000;padding: 0px 3px 0px 3px;">
+              <th style="width:27px;">nr</th>
+              <th style="width:92px">date</th>
+              <th style="width:307px">description</th>
+              <th style="width:61px">air & trans.</th>
+              <th style="width:61px">lodging</th>
+              <th style="width:70px">meals</th>
+              <th style="width:98px">mileage in KM*</th>
+              <th style="width:61px">other</th>
+              <th style="width:126px">total</th>
+            </tr>
+            {{#each lines}}
+            <tr style="height:19px">
+              <td  style="padding: 0px 3px 0px 3px;border-left:1px SOLID;border-bottom:1px SOLID #000000;border-right:1px SOLID #000000;">{{nr}}</td>
+              <td  style="padding: 0px 3px 0px 3px;border-bottom:1px SOLID #000000;border-right:1px SOLID #000000;">{{date}}</td>
+              <td  style="padding: 0px 3px 0px 3px;border-bottom:1px SOLID #000000;border-right:1px SOLID #000000;">{{description}}</td>
+              <td  style="padding: 0px 3px 0px 3px;border-bottom:1px SOLID #000000;border-right:1px SOLID #000000;background-color:#d8d8d8;text-align:right">{{set_decimal airtrans}}</td>
+              <td  style="padding: 0px 3px 0px 3px;border-bottom:1px SOLID #000000;border-right:1px SOLID #000000;background-color:#d8d8d8;text-align:right">{{set_decimal lodging}}</td>
+              <td  style="padding: 0px 3px 0px 3px;border-bottom:1px SOLID #000000;border-right:1px SOLID #000000;background-color:#d8d8d8;text-align:right">{{set_decimal meals}}</td>
+              <td  style="padding: 0px 3px 0px 3px;border-bottom:1px SOLID #000000;border-right:1px SOLID #000000;background-color:#d8d8d8;text-align:right">{{set_decimal mileage}}</td>
+              <td  style="padding: 0px 3px 0px 3px;border-bottom:1px SOLID #000000;border-right:1px SOLID #000000;background-color:#d8d8d8;text-align:right">{{set_decimal other}}</td>
+              <td  style="padding: 0px 3px 0px 3px;background-color:#e4e8f3;text-align:right">{{set_decimal total}}</td>
+            </tr>
+            {{/each}}
+            <tr style="padding: 0px 3px 0px 3px;height:19px;">
+              <td  style=""></td>
+              <td  style=""></td>
+              <td  style=""></td>
+              <td  style="padding: 0px 3px 0px 3px;background-color:#e4e8f3;text-align:right;">{{set_decimal total.airtrans}}</td>
+              <td  style="padding: 0px 3px 0px 3px;background-color:#e4e8f3;text-align:right;">{{set_decimal total.lodging}}</td>
+              <td  style="padding: 0px 3px 0px 3px;background-color:#e4e8f3;text-align:right;">{{set_decimal total.meals}}</td>
+              <td  style="padding: 0px 3px 0px 3px;background-color:#e4e8f3;text-align:right;">{{set_decimal total.mileage}}</td>
+              <td  style="padding: 0px 3px 0px 3px;background-color:#e4e8f3;text-align:right;">{{set_decimal total.other}}</td>
+              <td  style=""></td>
+            </tr>
+            <tr style="height:19px;">
+              <td  style=""></td>
+              <td  style="font-size: 8pt;" colspan="3">* Note: Mileage reinbursement for personal car = CHF0.70/KM</td>
+              <td  style=""></td>
+              <td  style=""></td>
+              <td  style="padding: 0px 3px 0px 3px;text-align:right;font-weight: bold;" colspan="2">TOTAL REIMBURSEMENT</td>
+              <td  style="padding: 0px 3px 0px 3px;text-align:right;font-weight: bold;background-color:#e4e8f3">CHF {{set_decimal total.grand}}</td>
+            </tr>
+          </table>
+        </div>
+
+    </body>
+</html>

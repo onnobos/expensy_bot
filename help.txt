@@ -1,0 +1,53 @@
+​receiptType: 
+    - restaurant(bar, cafeteria, coffee shop, diner, dining room,inn, joint,outlet,saloon,canteen,chophouse,dive,drive-in,eatery,grill,hideaway,lunchroom, pizzeria)
+	- petrolstation (gas station, gasoline station, petrol station)
+​merchantType: "esso", "shell", "socar", "bp", "statoil", "coop", "kukku", "movenpick", "san diego", "autogrill"
+​amountCurrency: "chf", "eur", "euro", "usd"
+amountType:
+​receiptdateType: AMAZON.DATE
+
+I have an expense claim from {receiptdateType}
+please record my expense claim
+expense claim
+I want to claim my {receiptType} from {receiptdateType}.
+I want to claim an expense.
+I had an expense claim from {receiptdateType}
+I want to claim an expense of {amountCurrency} {​amountType}
+I want to claim an expense of {amountType} {​amountCurrency}
+Spend​ {​amountCurrency}​​ {amountType}​ for ​{​receiptType}​ at ​{​merchantType}​ on ​{​receiptdateType}​
+Spend {amountCurrency} {​amountType} on {​receiptType} with a client {​receiptdateType}
+
+I want to do a expense claim
+
+
+
+InputA restaurant esso chf today
+
+
+InputA ​​{receiptType} {​merchantType}​ {​amountCurrency}​ {​receiptdateType}​
+
+InputB {receiptType} {​merchantType}​ {​amountCurrency}​ {amountType}​ {​receiptdateType}​
+
+
+T3 
+
+T4 
+
+T5 
+
+Claim for {​receiptType}​ at {​merchantType}​ on {​receiptdateType}​
+
+Claim for ​null at ​null on ​null
+
+
+
+
+
+Okay, I have you record a claim in the category {​receiptType} for {​merchantType} for {​amountCurrency} {amountType} on {​receiptdateType}. Should I store the the claim?
+
+
+
+{"chatId":584341394,"message_id":"178","userNumber":"584341394","message":"please record my expense claim", "slots": {"​receiptType": "restaurant", "​merchantType": "coop", "​amountCurrency": "eur",  "amountType": "100"}}
+
+
+"{\"chatId\":584341394,\"message_id\":\"178\",\"userNumber\":\"584341394\",\"message\":\"please record my expense claim\",\"slots\":{\"​receiptType\":\"restaurant\",\"​merchantType\":\"coop\",\"​amountCurrency\":\"eur\",\"amountType\":\"100\"}}"
